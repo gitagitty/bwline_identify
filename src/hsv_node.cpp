@@ -8,12 +8,12 @@
 using namespace cv;
 using namespace std;
 
-static int iLowH = 200;
-static int iHighH = 250;
-static int iLowS = 120;
-static int iHighS = 135;    
-static int iLowV = 120;
-static int iHighV = 125;
+static int iLowH = 0;
+static int iHighH = 85;
+static int iLowS = 100;
+static int iHighS = 150;    
+static int iLowV = 100;
+static int iHighV = 150;
 
 void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -65,8 +65,41 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
     Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
     morphologyEx(thresholded_img, thresholded_img, MORPH_OPEN, element);
     morphologyEx(thresholded_img, thresholded_img, MORPH_CLOSE, element);
+
+
+    // 遍历thresholded_img中的每个像素
+    int nTargetX = 0;
+    int nTargetY = 0;
+    int nPixCount = 0;
+    int nImgWidth = thresholded_img.cols;
+    int nImgHeight = thresholded_img.rows;
+    int nImgChannels = thresholded_img.channels();
+    for (int y = 300; y < nImgHeight; y++)
+    {
+        for (int x = 0; x < nImgWidth; x++)
+        {
+            // 获取当前像素的值
+            if (thresholded_img.data[y*nImgWidth + x] == 255) // 如果像素值大于0，表示该像素是目标颜色
+            {
+                nTargetX += x;
+                nTargetY += y;
+                nPixCount++;
+            }
+        }
+    }
+
+    if(nPixCount > 0)
+    {
+        nTargetX /= nPixCount; // 计算目标颜色的平均X坐标
+        nTargetY /= nPixCount; // 计算目标颜色的平均Y坐标
+
+        // 在原图上绘制目标颜色的中心点
+        circle(thresholded_img, Point(nTargetX, nTargetY), 5, Scalar(0, 255, 0), -1);
+        printf("Target Center: (%d, %d)\n", nTargetX, nTargetY);
+    }
     // Display the images
     imshow("rgb", img);
+
     //imshow("hsv", hsv_img);
     //imshow("ycrcb", ycrcb_img);
     imshow("result", thresholded_img);
@@ -92,7 +125,7 @@ int main(int argc, char** argv)
     createTrackbar("High V", "HSV Thresholds", &iHighV, 255);
 
     namedWindow("rgb");
-    namedWindow("hsv");
+    // namedWindow("hsv");
     namedWindow("result");
 
     ros::Rate loop_rate(30);
