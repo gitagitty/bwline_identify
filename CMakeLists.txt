@@ -10,6 +10,7 @@ project(bwline_id)
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions

@@ -3,6 +3,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <std_msgs/Int32.h>
 
 
 using namespace cv;
@@ -14,6 +15,7 @@ static int iLowS = 100;
 static int iHighS = 150;    
 static int iLowV = 100;
 static int iHighV = 150;
+int p_x = 0; // 用于存储目标颜色的中心点X坐标
 
 void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -92,11 +94,13 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
     {
         nTargetX /= nPixCount; // 计算目标颜色的平均X坐标
         nTargetY /= nPixCount; // 计算目标颜色的平均Y坐标
-
+        
+        p_x = nTargetX*254/639;// 将像素坐标转换为0-254范围的值
         // 在原图上绘制目标颜色的中心点
-        circle(thresholded_img, Point(nTargetX, nTargetY), 5, Scalar(0, 255, 0), -1);
-        printf("Target Center: (%d, %d)\n", nTargetX, nTargetY);
+        circle(thresholded_img, Point(nTargetX, nTargetY), 5, Scalar(0, 0, 255), -1);
+        printf("Target Center: (%d, %d), publish_x = %d\n", nTargetX, nTargetY, p_x);
     }
+    
     // Display the images
     imshow("rgb", img);
 
@@ -115,7 +119,19 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
 
     ros::Subscriber rgb_sub = nh.subscribe("/camera/color/image_raw", 1, hsvcallback);
+    ros::Publisher centre_pub = nh.advertise<std_msgs::Int32>("/centre_value", 10);
 
+    std_msgs::Int32 centre_msg;
+    
+
+    while(ros::ok())
+    {
+        centre_msg.data = p_x;
+        // 发布目标颜色的中心点X坐标
+        centre_pub.publish(centre_msg);
+        ros::spinOnce();
+        ros::Duration(0.1).sleep(); // 确保订阅者有时间接收消息
+    }
     namedWindow("HSV Thresholds", WINDOW_AUTOSIZE);
     createTrackbar("Low H", "HSV Thresholds", &iLowH, 255);
     createTrackbar("High H", "HSV Thresholds", &iHighH, 255);
