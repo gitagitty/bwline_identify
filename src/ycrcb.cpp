@@ -8,13 +8,13 @@
 
 using namespace cv;
 using namespace std;
-
-static int iLowH = 0;
-static int iHighH = 179;
-static int iLowS = 70;
-static int iHighS = 255;    
-static int iLowV = 70;
-static int iHighV = 255;
+//黑是0-60，白是200-255
+static int iLowY = 0;
+static int iHighY = 85;
+static int iLowCr = 100;
+static int iHighCr = 150;    
+static int iLowCb = 100;
+static int iHighCb = 150;
 int p_x = 0; // 用于存储目标颜色的中心点X坐标
 int nPixCount = 0;
 
@@ -34,28 +34,22 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
     Mat img = cv_ptr->image;
 
     // Convert the image from BGR to HSV
-    Mat hsv_img;
-    cvtColor(img, hsv_img, COLOR_BGR2HSV);
+    Mat ycrcb_img;
+    cvtColor(img, ycrcb_img, COLOR_BGR2YCrCb);
 
-    // Equalize the V channel to improve contrast
-/*     vector<Mat> hsv_channels;
-    split(hsv_img, hsv_channels);
-    equalizeHist(hsv_channels[2], hsv_channels[2]); // Equalize the V channel
-    merge(hsv_channels, hsv_img); */
-
-    //自适应直方图均衡化
-    vector<Mat> hsv_channels;
-    split(hsv_img, hsv_channels);// Equalize the V channel
+    // Equalize the Y channel to improve contrast
+    vector<Mat> ycrcb_channels;
+    split(ycrcb_img, ycrcb_channels);
+    //equalizeHist(ycrcb_channels[0], ycrcb_channels[0]); // 均衡化 Y 通道
     Ptr<CLAHE> clahe = createCLAHE(2.0, Size(8, 8)); // Create CLAHE object with clip limit and tile size
-    clahe->apply(hsv_channels[2], hsv_channels[2]); // Apply CLAHE to the V channel
-    merge(hsv_channels, hsv_img);
+    clahe->apply(ycrcb_channels[0], ycrcb_channels[0]); // Apply CLAHE to the Y channel
+    merge(ycrcb_channels, ycrcb_img);
 
 
 
-    // Threshold the HSV image to get only desired colors
+    // Threshold the YCrCb image to get only desired colors
     Mat thresholded_img;
-    inRange(hsv_img, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), thresholded_img);
-    
+    inRange(ycrcb_img, Scalar(iLowY, iLowCr, iLowCb), Scalar(iHighY, iHighCr, iHighCb), thresholded_img);
 
     Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
     morphologyEx(thresholded_img, thresholded_img, MORPH_OPEN, element);
@@ -91,7 +85,7 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
         p_x = nTargetX*254/639;// 将像素坐标转换为0-254范围的值
         // 在原图上绘制目标颜色的中心点
         circle(thresholded_img, Point(nTargetX, nTargetY), 5, Scalar(0, 0, 255), -1);
-        printf("Target Center: (%d, %d), publish_x = %d Pixcount= %d\n", nTargetX, nTargetY, p_x, nPixCount);
+        printf("Target Center: (%d, %d), publish_x = %d, Pixcount = %d \n", nTargetX, nTargetY, p_x, nPixCount);
     }
     
     // Display the images
@@ -105,7 +99,7 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "hsv_node");
+    ros::init(argc, argv, "ycrcb_node");
     ros::NodeHandle nh;
 
     ros::Subscriber rgb_sub = nh.subscribe("/camera/color/image_raw", 1, hsvcallback);
@@ -113,20 +107,23 @@ int main(int argc, char** argv)
 
     std_msgs::Int32 centre_msg;
     
-    namedWindow("HSV Thresholds", WINDOW_AUTOSIZE);
-    createTrackbar("Low H", "HSV Thresholds", &iLowH, 179);
-    createTrackbar("High H", "HSV Thresholds", &iHighH, 179);
-    createTrackbar("Low S", "HSV Thresholds", &iLowS, 255);
-    createTrackbar("High S", "HSV Thresholds", &iHighS, 255);
-    createTrackbar("Low V", "HSV Thresholds", &iLowV, 255);
-    createTrackbar("High V", "HSV Thresholds", &iHighV, 255);
 
     centre_msg.data = p_x;
     // 发布目标颜色的中心点X坐标
     centre_pub.publish(centre_msg);
     ros::Duration(0.1).sleep(); // 确保订阅者有时间接收消息
 
+
+    namedWindow("YCrCb Thresholds", WINDOW_AUTOSIZE);
+    createTrackbar("Low Y", "HSV Thresholds", &iLowY, 255);
+    createTrackbar("High Y", "HSV Thresholds", &iHighY, 255);
+    createTrackbar("Low Cr", "HSV Thresholds", &iLowCr, 255);
+    createTrackbar("High Cr", "HSV Thresholds", &iHighCr, 255);
+    createTrackbar("Low Cb", "HSV Thresholds", &iLowCb, 255);
+    createTrackbar("High Cb", "HSV Thresholds", &iHighCb, 255);
+
     namedWindow("rgb");
+    // namedWindow("hsv");
     namedWindow("result");
 
     ros::Rate loop_rate(30);

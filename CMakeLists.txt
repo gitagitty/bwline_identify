@@ -207,11 +207,11 @@ include_directories(
 # catkin_add_nosetests(test)
 
 
-add_executable(cvidentify_node 
-  src/cvidentify.cpp)
+add_executable(ycrcb 
+  src/ycrcb.cpp)
 
-add_dependencies(cvidentify_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(cvidentify_node
+add_dependencies(ycrcb ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ycrcb
   ${catkin_LIBRARIES}
   ${OpenCV_LIBS}
 )
