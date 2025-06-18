@@ -97,38 +97,42 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
 
 
 
+
+
+
+
+
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "ycrcb_node");
     ros::NodeHandle nh;
 
     ros::Subscriber rgb_sub = nh.subscribe("/camera/color/image_raw", 1, hsvcallback);
+    ros::Rate loop_rate(30);
+
+
     ros::Publisher centre_pub = nh.advertise<std_msgs::Int32>("/centre_value", 10);
-
-    std_msgs::Int32 centre_msg;
-    
-
-    centre_msg.data = p_x;
-    // 发布目标颜色的中心点X坐标
-    centre_pub.publish(centre_msg);
-    ros::Duration(0.1).sleep(); // 确保订阅者有时间接收消息
 
 
     namedWindow("YCrCb Thresholds", WINDOW_AUTOSIZE);
-    createTrackbar("Low Y", "HSV Thresholds", &iLowY, 255);
-    createTrackbar("High Y", "HSV Thresholds", &iHighY, 255);
-    createTrackbar("Low Cr", "HSV Thresholds", &iLowCr, 255);
-    createTrackbar("High Cr", "HSV Thresholds", &iHighCr, 255);
-    createTrackbar("Low Cb", "HSV Thresholds", &iLowCb, 255);
-    createTrackbar("High Cb", "HSV Thresholds", &iHighCb, 255);
+    createTrackbar("Low Y", "YCrCb Thresholds", &iLowY, 255);
+    createTrackbar("High Y", "YCrCb Thresholds", &iHighY, 255);
+    createTrackbar("Low Cr", "YCrCb Thresholds", &iLowCr, 255);
+    createTrackbar("High Cr", "YCrCb Thresholds", &iHighCr, 255);
+    createTrackbar("Low Cb", "YCrCb Thresholds", &iLowCb, 255);
+    createTrackbar("High Cb", "YCrCb Thresholds", &iHighCb, 255);
 
-    namedWindow("rgb");
-    // namedWindow("hsv");
-    namedWindow("result");
 
-    ros::Rate loop_rate(30);
-    ros::spin();
+    while(ros::ok())
+    {
+        std_msgs::Int32 centre_msg;
+        centre_msg.data = p_x;
+        // 发布目标颜色的中心点X坐标
+        centre_pub.publish(centre_msg);
+        ros::spinOnce(); // 处理回调函数
+        loop_rate.sleep(); // 控制循环频率
+    }
 
-    
     return 0;
 }

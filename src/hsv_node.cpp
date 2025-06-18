@@ -109,9 +109,11 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
 
     ros::Subscriber rgb_sub = nh.subscribe("/camera/color/image_raw", 1, hsvcallback);
+    ros::Rate loop_rate(30);
+    
+    
     ros::Publisher centre_pub = nh.advertise<std_msgs::Int32>("/centre_value", 10);
 
-    std_msgs::Int32 centre_msg;
     
     namedWindow("HSV Thresholds", WINDOW_AUTOSIZE);
     createTrackbar("Low H", "HSV Thresholds", &iLowH, 179);
@@ -120,17 +122,17 @@ int main(int argc, char** argv)
     createTrackbar("High S", "HSV Thresholds", &iHighS, 255);
     createTrackbar("Low V", "HSV Thresholds", &iLowV, 255);
     createTrackbar("High V", "HSV Thresholds", &iHighV, 255);
+    
+    while(ros::ok())
+    {
+        std_msgs::Int32 centre_msg;
+        centre_msg.data = p_x;
+        // 发布目标颜色的中心点X坐标
+        centre_pub.publish(centre_msg);
+        ros::spinOnce(); // 处理回调函数
+        loop_rate.sleep(); // 控制循环频率
+    }
 
-    centre_msg.data = p_x;
-    // 发布目标颜色的中心点X坐标
-    centre_pub.publish(centre_msg);
-    ros::Duration(0.1).sleep(); // 确保订阅者有时间接收消息
-
-    namedWindow("rgb");
-    namedWindow("result");
-
-    ros::Rate loop_rate(30);
-    ros::spin();
 
     
     return 0;
