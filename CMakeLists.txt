@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
   std_msgs
+  serial
 )
 
 ## System dependencies are found with CMake's conventions
@@ -223,4 +224,12 @@ add_dependencies(hsv_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_
 target_link_libraries(hsv_node
   ${catkin_LIBRARIES}
   ${OpenCV_LIBS}
+)
+
+add_executable(serial_port 
+        src/serial_port.cpp
+)
+
+target_link_libraries(serial_port 
+        ${catkin_LIBRARIES}
 )

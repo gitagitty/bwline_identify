@@ -152,7 +152,13 @@
 
 
 
-  <node name="hsv_node" pkg="bwline_id" type="hsv_node" output="screen"/>
+  <node name="hsv_node" pkg="bwline_id" type="hsv_node" />
+
+
+    <!-- 启动串口通信 -->
+  <node name="serial_port" pkg="bwline_id" type="serial_port" >
+    <param name="port" value="/dev/ttyUSB0"/>
+  </node>
 
 
   
