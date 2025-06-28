@@ -61,15 +61,18 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
     morphologyEx(thresholded_img, thresholded_img, MORPH_OPEN, element);
     morphologyEx(thresholded_img, thresholded_img, MORPH_CLOSE, element);
 
+    // Perform Canny edge detection on the thresholded image
+    Mat canny_img;
+    cv::Canny(thresholded_img, canny_img, 50, 150); // 使用Canny边缘检测
 
      // 遍历thresholded_img中的每个像素
     int nTargetXL = 0;
     int nTargetXR = 0;
     int nTargetX = 0; // 目标颜色的平均X坐标
     int nTargetY = 0;
-    int nImgWidth = thresholded_img.cols;
-    int nImgHeight = thresholded_img.rows;
-    int nImgChannels = thresholded_img.channels();
+    int nImgWidth = canny_img.cols;
+    int nImgHeight = canny_img.rows;
+    int nImgChannels = canny_img.channels();
     nPixCount = 0;
     int PixCountL = 0; // 左半边像素计数
     int PixCountR = 0; // 右半边像素计数
@@ -78,9 +81,9 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
         for (int x = 0; x < nImgWidth; x++)
         {
             // 获取当前像素的值
-            if (thresholded_img.data[y*nImgWidth + x] == 255) // 如果像素值大于0，表示该像素是目标颜色
+            if (canny_img.data[y*nImgWidth + x] == 255) // 如果像素值大于0，表示该像素是目标颜色
             {
-                if (x<= 320) // 如果像素在左半边
+                if (x<= nImgWidth / 2) // 如果像素在左半边
                 {
                     nTargetXL += x; // 累加左半边的X坐标
                     PixCountL++; // 增加左半边像素计数
@@ -96,18 +99,16 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
         }
     }
 
-    if(nPixCount > 0)
+    if(nPixCount > 0 && PixCountL > 0 && PixCountR > 0) // 如果找到了目标颜色的像素
     {
         nTargetXL /= PixCountL; // 计算目标颜色的平均X坐标
         nTargetXR /= PixCountR; // 计算目标颜色的平均X坐标
-        nTargetX = (nTargetXL + nTargetXR) / 2; // 计算目标颜色的平均X坐标
+        nTargetX = (nTargetXL + nTargetXR) * 0.5; // 计算目标颜色的平均X坐标
 
         nTargetY /= nPixCount; // 计算目标颜色的平均Y坐标
         
-        p_x = nTargetX*254/639;// 将像素坐标转换为0-254范围的值
-        // 在原图上绘制目标颜色的中心点
-        circle(thresholded_img, Point(nTargetX, nTargetY), 5, Scalar(0, 0, 255), -1);
-        printf("Target Center: (%d, %d), publish_x = %d, Pixcount = %d \n", nTargetX, nTargetY, p_x, nPixCount);
+        p_x = nTargetX*254/ nImgWidth;// 将像素坐标转换为0-254范围的值
+        ROS_INFO("Target Center: (%d, %d), publish_x = %d, Pixcount = %d \n", nTargetX, nTargetY, p_x, nPixCount);
     }
     
     // Display the images
