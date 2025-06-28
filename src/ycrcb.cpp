@@ -57,12 +57,16 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
 
 
     // 遍历thresholded_img中的每个像素
-    int nTargetX = 0;
+    int nTargetXL = 0;
+    int nTargetXR = 0;
+    int nTargetX = 0; // 目标颜色的平均X坐标
     int nTargetY = 0;
     int nImgWidth = thresholded_img.cols;
     int nImgHeight = thresholded_img.rows;
     int nImgChannels = thresholded_img.channels();
     nPixCount = 0;
+    int PixCountL = 0; // 左半边像素计数
+    int PixCountR = 0; // 右半边像素计数
     for (int y = 300; y < nImgHeight; y++)
     {
         for (int x = 0; x < nImgWidth; x++)
@@ -70,7 +74,16 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
             // 获取当前像素的值
             if (thresholded_img.data[y*nImgWidth + x] == 255) // 如果像素值大于0，表示该像素是目标颜色
             {
-                nTargetX += x;
+                if (x<= 320) // 如果像素在左半边
+                {
+                    nTargetXL += x; // 累加左半边的X坐标
+                    PixCountL++; // 增加左半边像素计数
+                }
+                else // 如果像素在右半边
+                {
+                    nTargetXR += x; // 累加右半边的X坐标
+                    PixCountR++; // 增加右半边像素计数
+                }
                 nTargetY += y;
                 nPixCount++;
             }
@@ -79,7 +92,10 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
 
     if(nPixCount > 0)
     {
-        nTargetX /= nPixCount; // 计算目标颜色的平均X坐标
+        nTargetXL /= PixCountL; // 计算目标颜色的平均X坐标
+        nTargetXR /= PixCountR; // 计算目标颜色的平均X坐标
+        nTargetX = (nTargetXL + nTargetXR) / 2; // 计算目标颜色的平均X坐标
+
         nTargetY /= nPixCount; // 计算目标颜色的平均Y坐标
         
         p_x = nTargetX*254/639;// 将像素坐标转换为0-254范围的值
