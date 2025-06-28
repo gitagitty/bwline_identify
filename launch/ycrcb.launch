@@ -156,9 +156,9 @@
 
 
       <!-- 启动串口通信 -->
-  <!-- <node name="serial_port" pkg="bwline_id" type="serial_port" >
+  <node name="serial_port" pkg="bwline_id" type="serial_port" >
     <param name="port" value="/dev/ttyUSB0"/>
-  </node> -->
+  </node>
 
 
 
