@@ -4,6 +4,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <std_msgs/Int32.h>
+#include <stack> 
+
+
+
 
 
 using namespace cv;
@@ -70,7 +74,10 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
     nPixCount = 0;
     int PixCountL = 0; // 左半边像素计数
     int PixCountR = 0; // 右半边像素计数
-    for (int y = 300; y < nImgHeight; y++)
+
+    /* y = 0.4height, x = 2x,y = height ,x = 0.5 x, (width - x)* (-2.5 y/height +3) = width - v,v = width + (x - width)  */
+    
+    for (int y = 0.4 * nImgHeight; y < nImgHeight; y++)
     {
         for (int x = 0; x < nImgWidth; x++)
         {
@@ -79,12 +86,12 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
             {
                 if (x<= nImgWidth / 2) // 如果像素在左半边
                 {
-                    nTargetXL += x; // 累加左半边的X坐标
+                    nTargetXL += nImgWidth / 2 + (x - nImgWidth / 2) * (-2.5*y / nImgHeight +3 ); // 累加左半边的X坐标
                     PixCountL++; // 增加左半边像素计数
                 }
                 else // 如果像素在右半边
                 {
-                    nTargetXR += x; // 累加右半边的X坐标
+                    nTargetXR += nImgWidth / 2 + (x - nImgWidth / 2) * (-2.5*y / nImgHeight +3); // 累加右半边的X坐标
                     PixCountR++; // 增加右半边像素计数
                 }
                 nTargetY += y;
@@ -102,7 +109,8 @@ void hsvcallback(const sensor_msgs::ImageConstPtr& msg)
         nTargetY /= nPixCount; // 计算目标颜色的平均Y坐标
         
         p_x = nTargetX*254/ nImgWidth;// 将像素坐标转换为0-254范围的值
-        ROS_INFO("Target Center: (%d, %d), publish_x = %d, Pixcount = %d \n", nTargetX, nTargetY, p_x, nPixCount);
+        ROS_INFO("Target Center: (%d, %d), left x: %d, right x : %d, publish_x = %d ,Imgheight = %d, Imgwidth = %d, Pixcount = %d, PixcountL = %d, PixcountR = %d \n", 
+            nTargetX, nTargetY, nTargetXL,nTargetXR, p_x, nImgHeight,nImgWidth, nPixCount, PixCountL, PixCountR);
     }
     
     // Display the images
