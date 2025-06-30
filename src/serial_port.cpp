@@ -2,7 +2,7 @@
 #include <serial/serial.h>  // 串口头文件
 #include <iostream>
 #include <sstream>  // 用于数据转换
-#include <std_msgs/Int32.h>
+#include <bwline_id/Results.h>  // 自定义消息头文件
 
 serial::Serial ser;
 std::string port_;
@@ -27,12 +27,13 @@ void initSerialPort(const std::string &port, unsigned long baudrate) {
 }
 
 // 发送数据到串口的函数
-void sendToSerial(int x) {
-    // 构造数据帧，帧头 0x0A，数据为 x, y, z，帧尾 0x0D
-    uint8_t frame[3];
+void sendToSerial(int x, int slope) {
+    // 构造数据帧，帧头 0x0A，数据为 x, slope，帧尾 0x0D
+    uint8_t frame[4];
     frame[0] = 0x0A;  // 帧头
     frame[1] = static_cast<uint8_t>(x);  // x值
-    frame[2] = 0x0D;  // 帧尾
+    frame[2] = static_cast<uint8_t>(slope);  // slope值
+    frame[3] = 0x0D;  // 帧尾
 
     // 发送数据帧
     try {
@@ -44,13 +45,14 @@ void sendToSerial(int x) {
 }
 
 // 接收并处理消息
-void resultsCallback(const std_msgs::Int32::ConstPtr& msg) {
-        int x = msg->data;
+void resultsCallback(const bwline_id::Results::ConstPtr& msg) {
+        int x = msg->centre_x;
+        int slope = msg->slope;
 
         // 打印坐标信息
-        ROS_INFO("value: %d", x);
+        ROS_INFO("centre: %d , slope: %d", x, slope);
         // 发送坐标到串口
-        sendToSerial(x);
+        sendToSerial(x, slope);
     
 }
 
@@ -63,7 +65,7 @@ int main(int argc, char **argv) {
     initSerialPort(port_, 9600);
 
     // 订阅ROS话题
-    ros::Subscriber sub = nh.subscribe("/centre_value", 10, resultsCallback);
+    ros::Subscriber sub = nh.subscribe("results", 10, resultsCallback);
 
     ros::spin();  // 保持节点运行
     return 0;

@@ -152,7 +152,15 @@
 
 
 
-  <node name="ycrcb_node" pkg="bwline_id" type="ycrcb"/>
+  <node name="ycrcb_node" pkg="bwline_id" type="ycrcb">
+    <param name="low_y" value="0"/>
+    <param name="high_y" value="85"/>
+    <param name="low_cr" value="100"/>
+    <param name="high_cr" value="150"/>
+    <param name="low_cb" value="100"/>
+    <param name="high_cb" value="150"/>
+    <param name="input_topic" value="/camera/color/image_raw"/>
+  </node>
 
 
       <!-- 启动串口通信 -->
