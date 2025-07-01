@@ -152,7 +152,15 @@
 
 
 
-  <node name="hsv_node" pkg="bwline_id" type="hsv_node" />
+  <node name="hsv_node" pkg="bwline_id" type="hsv" >
+    <param name="low_h" value="0"/>
+    <param name="high_h" value="85"/>
+    <param name="low_s" value="70"/>
+    <param name="high_s" value="255"/>
+    <param name="low_v" value="70"/>
+    <param name="high_v" value="255"/>
+    <param name="k" value="10.0"/>
+    <param name="input_topic" value="/camera/color/image_raw"/>
 
 
     <!-- 启动串口通信 -->

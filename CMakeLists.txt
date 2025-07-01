@@ -221,14 +221,17 @@ target_link_libraries(ycrcb
   ${OpenCV_LIBS}
 )
 
-# add_executable(hsv_node 
-#   src/hsv_node.cpp)
+# add_executable(hsv 
+#   src/hsv.cpp
+#   src/utils.cpp
+#   )
 
-# add_dependencies(hsv_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(hsv_node
+# add_dependencies(hsv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(hsv
 #   ${catkin_LIBRARIES}
 #   ${OpenCV_LIBS}
 # )
+
 
 add_executable(serial_port 
         src/serial_port.cpp

@@ -159,6 +159,7 @@
     <param name="high_cr" value="150"/>
     <param name="low_cb" value="100"/>
     <param name="high_cb" value="150"/>
+    <param name="k" value="10.0"/>
     <param name="input_topic" value="/camera/color/image_raw"/>
   </node>
 

@@ -26,6 +26,25 @@ Mat equalize(Mat &input_image, int channel)
     return output_image;
 }
 
+Mat clahe(Mat &input_image, int channel)
+{
+    Mat output_image;
+    vector<Mat> channels;
+    split(input_image, channels);
+    
+    if (channel < 0 || channel >= channels.size()) {
+        ROS_ERROR("Invalid channel index: %d", channel);
+        return input_image; // Return original image if channel is invalid
+    }
+    
+    Ptr<CLAHE> clahe = createCLAHE(2.0, Size(8, 8)); // Create CLAHE object with clip limit and tile grid size
+    clahe->apply(channels[channel], channels[channel]);
+    
+    merge(channels, output_image);
+    
+    return output_image;
+}
+
 Mat threshold(Mat &input_image, int low1, int high1, int low2, int high2,
                         int low3, int high3)
 {
@@ -118,7 +137,8 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
         slope = slopeL + slopeR; // 计算平均斜率
     }
 
-    results.slope = (int)(-slope * fraction + 127.5); // 根据fraction调整斜率范围
+    results.slope = min(255,max(0,(int)(-slope * fraction + 127.5))); // 根据fraction调整斜率范围
     
     return results;
+
 }
