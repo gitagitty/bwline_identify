@@ -88,7 +88,7 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
     bwline_id::Results results;
 
     
-    for (int y = 0.4 * nImgHeight; y < nImgHeight; y++)
+    for (int y = 0; y < 0.7 * nImgHeight; y++)
     {
         for (int x = 0; x < nImgWidth; x++)
         {
@@ -97,7 +97,7 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
             {
                 if (x<= nImgWidth / 2) // 如果像素在左半边
                 {
-                    nTargetXL += nImgWidth / 2 + (x - nImgWidth / 2) * (-2.5*y / nImgHeight +3 ); // 累加左半边的X坐标
+                    nTargetXL += nImgWidth / 2 + (x - nImgWidth / 2) * (-2.5*y / nImgHeight +3 ); // 加权累加左半边的X坐标
                     nTargetYL += y; // 累加左半边的Y坐标
                     sumXYL += x * y; // 累加左半边像素的X坐标和Y坐标的乘积
                     sumY2L += y * y; // 累加左半边像素的Y坐标的平方
@@ -106,7 +106,7 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
                 }
                 else // 如果像素在右半边
                 {
-                    nTargetXR += nImgWidth / 2 + (x - nImgWidth / 2) * (-2.5*y / nImgHeight +3); // 累加右半边的X坐标
+                    nTargetXR += nImgWidth / 2 + (x - nImgWidth / 2) * (-2.5*y / nImgHeight +3); // 加权累加右半边的X坐标
                     nTargetYR += y; // 累加右半边的Y坐标
                     sumXYR += x * y; // 累加右半边像素的X坐标和Y坐标的乘积
                     sumY2R += y * y; // 累加右半边像素的Y坐标的平方
