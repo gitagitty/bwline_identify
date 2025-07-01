@@ -125,7 +125,7 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
 
         nTargetY = (nTargetYL + nTargetYR) / (PixCountL + PixCountR); // 计算目标颜色的平均Y坐标
         
-        results.centre_x = nTargetX*255/ nImgWidth;// 将像素坐标转换为0-254范围的值
+        results.centre_x = max(0, min(255,nTargetX*255/ nImgWidth));// 将像素坐标转换为0-254范围的值
         ROS_INFO("Target Center: (%d, %d), left x: %d, right x : %d, publish_x = %d ,Imgheight = %d, Imgwidth = %d, PixcountL = %d, PixcountR = %d \n", 
             nTargetX, nTargetY, nTargetXL,nTargetXR, results.centre_x, nImgHeight,nImgWidth, PixCountL, PixCountR);
     }
