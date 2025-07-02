@@ -58,9 +58,8 @@ Mat threshold(Mat &input_image, int low1, int high1, int low2, int high2,
 }
 Mat canny_convert(Mat &input_image)
 {
-    Mat gray_image, canny_image;
-    cvtColor(input_image, gray_image, COLOR_BGR2GRAY);
-    Canny(gray_image, canny_image, 100, 200);
+    Mat canny_image;
+    Canny(input_image, canny_image, 100, 200);
     return canny_image;
 }
 
@@ -126,8 +125,6 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
         nTargetY = (nTargetYL + nTargetYR) / (PixCountL + PixCountR); // 计算目标颜色的平均Y坐标
         
         results.centre_x = max(0, min(255,nTargetX*255/ nImgWidth));// 将像素坐标转换为0-254范围的值
-        ROS_INFO("Target Center: (%d, %d), left x: %d, right x : %d, publish_x = %d ,Imgheight = %d, Imgwidth = %d, PixcountL = %d, PixcountR = %d \n", 
-            nTargetX, nTargetY, nTargetXL,nTargetXR, results.centre_x, nImgHeight,nImgWidth, PixCountL, PixCountR);
     }
 
     if(PixCountL > 0 && PixCountR > 0) // 如果找到目标颜色的像素
@@ -138,6 +135,7 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
     }
 
     results.slope = min(255,max(0,(int)(-slope * fraction + 127.5))); // 根据fraction调整斜率范围
+    ROS_INFO("p_x = %d, p_s = %d \n",results.centre_x, results.slope);
     
     return results;
 
