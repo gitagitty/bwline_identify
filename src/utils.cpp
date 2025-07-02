@@ -63,6 +63,15 @@ Mat canny_convert(Mat &input_image)
     return canny_image;
 }
 
+Mat rotate(Mat &input_image, double angle)
+{
+    Point2f center(input_image.cols / 2.0, input_image.rows / 2.0);
+    Mat rotation_matrix = getRotationMatrix2D(center, angle, 1.0);
+    Mat rotated_image;
+    warpAffine(input_image, rotated_image, rotation_matrix, input_image.size());
+    return rotated_image;
+}
+
 bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的范围，参数越大斜率范围越大 */)
 {
     // 遍历thresholded_img中的每个像素

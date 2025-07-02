@@ -14,6 +14,7 @@ extern cv::Mat clahe(cv::Mat &input_image, int channel);
 extern cv::Mat threshold(cv::Mat &input_image, int low1, int high1, int low2, int high2,
                         int low3, int high3);
 extern cv::Mat canny_convert(cv::Mat &input_image);
+extern cv::Mat rotate(cv::Mat &input_image, double angle);
 
 extern bwline_id::Results calculate(cv::Mat &input_image, float fraction);
 
