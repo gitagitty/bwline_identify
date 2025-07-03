@@ -125,7 +125,7 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
         }
     }
 
-    if(PixCountL > 0 && PixCountL > 0) // 如果找到了目标颜色的像素
+    if(PixCountL >= 300 && PixCountR >= 300) // 如果找到了目标颜色的像素
     {
         nTargetXL /= PixCountL; // 计算目标颜色的平均X坐标
         nTargetXR /= PixCountR; // 计算目标颜色的平均X坐标
@@ -133,9 +133,14 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
 
         nTargetY = (nTargetYL + nTargetYR) / (PixCountL + PixCountR); // 计算目标颜色的平均Y坐标
         
-        results.centre_x = max(0, min(255,nTargetX*255/ nImgWidth));// 将像素坐标转换为0-254范围的值
+        results.centre_x = max(0, min(255,nTargetX*255/ nImgWidth));// 将像素坐标转换为0-255范围的值
+    }else if(PixCountL< 300 && PixCountR >= 300){
+        results.centre_x = 0;
+    }else if(PixCountL >= 300 && PixCountR < 300){
+        results.centre_x = 255;
     }
 
+    
     if(PixCountL > 0 && PixCountR > 0) // 如果找到目标颜色的像素
     {
         float slopeL = (float)(PixCountL * sumXYL - sumXL * nTargetYL) / (PixCountL * sumY2L - nTargetYL * nTargetYL);
