@@ -27,18 +27,17 @@ void initSerialPort(const std::string &port, unsigned long baudrate) {
 }
 
 // 发送数据到串口的函数
-void sendToSerial(int x, int slope) {
+void sendToSerial(int a, int b) {
     // 构造数据帧，帧头 0x0A，数据为 x, slope，帧尾 0x0D
     uint8_t frame[4];
     frame[0] = 0x0A;  // 帧头
-    frame[1] = static_cast<uint8_t>(x);  // x值
-    frame[2] = static_cast<uint8_t>(slope);  // slope值
+    frame[1] = static_cast<uint8_t>(a);  // x值
+    frame[2] = static_cast<uint8_t>(b);  // slope值
     frame[3] = 0x0D;  // 帧尾
 
     // 发送数据帧
     try {
         ser.write(frame, sizeof(frame));
-        ROS_INFO("数据已发送: x=%d", x);
     } catch (serial::IOException &e) {
         ROS_ERROR("发送数据失败: %s", e.what());
     }
@@ -46,13 +45,13 @@ void sendToSerial(int x, int slope) {
 
 // 接收并处理消息
 void resultsCallback(const bwline_id::Results::ConstPtr& msg) {
-        int x = msg->centre_x;
-        int slope = msg->slope;
+        int xl = msg->p_xl;
+        int xr = msg->p_xr;
 
         // 打印坐标信息
-        ROS_INFO("centre: %d , slope: %d", x, slope);
+        // ROS_WARN("xl: %d , xr: %d", xl, xr);
         // 发送坐标到串口
-        sendToSerial(x, slope);
+        sendToSerial(xl, xr);
     
 }
 

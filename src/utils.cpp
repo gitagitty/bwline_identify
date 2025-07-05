@@ -9,6 +9,10 @@
 using namespace cv;
 using namespace std;
 
+const double K[9] = {609.6251831054688, 0.0, 317.4799499511719, 0.0, 608.375, 238.7157745361328, 0.0, 0.0, 1.0};
+
+
+
 Mat equalize(Mat &input_image, int channel)
 {
     Mat output_image;
@@ -72,31 +76,23 @@ Mat rotate(Mat &input_image, double angle)
     return rotated_image;
 }
 
-bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的范围，参数越大斜率范围越大 */)
+bwline_id::Results calculate(cv::Mat &input_image, cv::Mat &depth_img ,float start_value, float end_value)
 {
     // 遍历thresholded_img中的每个像素
-    int nTargetXL = 0;
-    int nTargetXR = 0;
-    int nTargetX = 0; // 目标颜色的平均X坐标
-    int nTargetY = 0;
-    int nTargetYL = 0; // 左半边目标颜色的平均Y坐标
-    int nTargetYR = 0; // 右半边目标颜色的平均Y
+    double nTargetXL = 0.0;
+    double nTargetXR = 0.0;
     int nImgWidth = input_image.cols;
     int nImgHeight = input_image.rows;
     int nImgChannels = input_image.channels();
     int PixCountL = 0; // 左半边像素计数
     int PixCountR = 0; // 右半边像素计数
-    int sumXL = 0; // 左半边像素的X坐标和
-    int sumXR = 0; // 右半边像素的X坐标
-    int sumXYL = 0; // 左半边像素的X坐标和Y坐标的乘积和
-    int sumXYR = 0; // 右半边像素的X坐标和Y坐标的乘积和
-    int sumY2L = 0; // 左半边像素的X坐标的平方和
-    int sumY2R = 0; // 右半边像素的X
-    float slope = 0; // 斜率
     bwline_id::Results results;
+    results.p_xl = 50; // 初始化左半边目标颜色的平均X坐标
+    results.p_xr = 50; // 初始化右半边目标颜色的
+    PixelData pixel_data;
 
     
-    for (int y = 0; y < 0.7 * nImgHeight; y++)
+    for (int y = (int)(start_value * nImgHeight); y < (int)(end_value * nImgHeight); y++)
     {
         for (int x = 0; x < nImgWidth; x++)
         {
@@ -105,52 +101,81 @@ bwline_id::Results calculate(Mat &input_image, float fraction/* 修改斜率的�
             {
                 if (x<= nImgWidth / 2) // 如果像素在左半边
                 {
-                    nTargetXL += nImgWidth / 2 + (x - nImgWidth / 2) * (-2.5*y / nImgHeight +3 ); // 加权累加左半边的X坐标
-                    nTargetYL += y; // 累加左半边的Y坐标
-                    sumXYL += x * y; // 累加左半边像素的X坐标和Y坐标的乘积
-                    sumY2L += y * y; // 累加左半边像素的Y坐标的平方
-                    sumXL += x; // 累加左半边像素的X坐标
-                    PixCountL++; // 增加左半边像素计数
+                    pixel_data = findx(x, y, depth_img,PixCountL);// 累加左半边的X坐标
+                    nTargetXL -= pixel_data.x; // 累加左半边的X坐标
+                    PixCountL = pixel_data.count; // 更新左半边像素计数
                 }
                 else // 如果像素在右半边
                 {
-                    nTargetXR += nImgWidth / 2 + (x - nImgWidth / 2) * (-2.5*y / nImgHeight +3); // 加权累加右半边的X坐标
-                    nTargetYR += y; // 累加右半边的Y坐标
-                    sumXYR += x * y; // 累加右半边像素的X坐标和Y坐标的乘积
-                    sumY2R += y * y; // 累加右半边像素的Y坐标的平方
-                    sumXR += x; // 累加右半边
-                    PixCountR++; // 增加右半边像素计数
+                    pixel_data = findx(x, y, depth_img,PixCountR); // 累加右半边的X坐标
+                    nTargetXR += pixel_data.x; // 累加右半边的X坐标
+                    PixCountR = pixel_data.count; // 更新右半边像素计数
                 }
             }
         }
     }
+    // ROS_WARN("p_xl = %d, p_xr = %d \n",nTargetXL, nTargetXR);
 
-    if(PixCountL >= 300 && PixCountR >= 300) // 如果找到了目标颜色的像素
-    {
-        nTargetXL /= PixCountL; // 计算目标颜色的平均X坐标
-        nTargetXR /= PixCountR; // 计算目标颜色的平均X坐标
-        nTargetX = (nTargetXL + nTargetXR) * 0.5; // 计算目标颜色的平均X坐标
+    if(PixCountL >= 300) {
+    nTargetXL /= PixCountL;
+    results.p_xl = max(0, min(200, static_cast<int>(nTargetXL)));
+} else {
+    results.p_xl = 255;
+}
 
-        nTargetY = (nTargetYL + nTargetYR) / (PixCountL + PixCountR); // 计算目标颜色的平均Y坐标
-        
-        results.centre_x = max(0, min(255,nTargetX*255/ nImgWidth));// 将像素坐标转换为0-255范围的值
-    }else if(PixCountL< 300 && PixCountR >= 300){
-        results.centre_x = 0;
-    }else if(PixCountL >= 300 && PixCountR < 300){
-        results.centre_x = 255;
-    }
+if(PixCountR >= 300) {
+    nTargetXR /= PixCountR;
+    results.p_xr = max(0, min(200, static_cast<int>(nTargetXR)));
+} else {
+    results.p_xr = 255;
+}
 
-    
-    if(PixCountL > 0 && PixCountR > 0) // 如果找到目标颜色的像素
-    {
-        float slopeL = (float)(PixCountL * sumXYL - sumXL * nTargetYL) / (PixCountL * sumY2L - nTargetYL * nTargetYL);
-        float slopeR = (float)(PixCountR * sumXYR - sumXR * nTargetYR) / (PixCountR * sumY2R - nTargetYR * nTargetYR);
-        slope = slopeL + slopeR; // 计算平均斜率
-    }
-
-    results.slope = min(255,max(0,(int)(-slope * fraction + 127.5))); // 根据fraction调整斜率范围
-    ROS_INFO("p_x = %d, p_s = %d \n",results.centre_x, results.slope);
+    ROS_WARN("p_xl = %d, p_xr = %d \n",results.p_xl, results.p_xr);
+    // ROS_WARN("PixCountL = %d, PixCountR = %d \n",PixCountL, PixCountR);
     
     return results;
 
 }
+
+PixelData findx(int pixel_x, int pixel_y, cv::Mat &depth_img,int counter)
+{
+    // ROS_WARN("width = %d, height = %d", depth_img.cols, depth_img.rows);
+    try
+        {
+            PixelData pixel_data;
+            if (pixel_x >= depth_img.cols || pixel_y >= depth_img.rows)
+            {
+                ROS_WARN("Pixel coordinates out of bounds.");
+                pixel_data.x = 0.0;
+                pixel_data.count = counter;
+                return pixel_data; // 返回0表示未找到有效深度值
+            }
+
+            
+
+            uint16_t depth_value = depth_img.at<uint16_t>(pixel_y, pixel_x); // 深度值是 16 位无符号整数（单位：毫米）
+
+            if(depth_value !=0)
+            {
+                double depth_m = depth_value / 10.0; // 转换为cm
+
+                double fx = K[0];
+                double cx = K[2];
+                double X = (pixel_x - cx) * depth_m / fx;
+                // ROS_WARN("X = %f", X);
+                counter ++;
+                pixel_data.x = X; // 计算得到的X坐标
+                pixel_data.count = counter; // 更新计数  
+                return pixel_data; // 返回计算得到的X坐标
+            }
+        }
+        catch (const cv::Exception& e)
+        {
+            ROS_ERROR("OpenCV exception: %s", e.what());
+            PixelData pixel_data;
+            pixel_data.x = 0.0;
+            pixel_data.count = counter;
+            return pixel_data; // 返回0表示未找到有效深度值
+        }
+}
+

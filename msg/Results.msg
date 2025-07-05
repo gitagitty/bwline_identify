@@ -1,2 +1,2 @@
-int32 centre_x #0~254
-int32 slope
+int32 p_xl 
+int32 p_xr

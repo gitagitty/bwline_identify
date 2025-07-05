@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   serial
   message_generation
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
@@ -109,7 +110,8 @@ generate_messages(
 catkin_package(
         # INCLUDE_DIRS include
         # LIBRARIES ${PROJECT_NAME}
-        CATKIN_DEPENDS roscpp  message_runtime std_msgs
+        CATKIN_DEPENDS roscpp sensor_msgs cv_bridge image_transport message_runtime std_msgs serial
+        # DEPENDS system_lib
 )
 
 ###########
@@ -221,16 +223,16 @@ target_link_libraries(ycrcb
   ${OpenCV_LIBS}
 )
 
-add_executable(hsv 
-  src/hsv.cpp
-  src/utils.cpp
-  )
+# add_executable(hsv 
+#   src/hsv.cpp
+#   src/utils.cpp
+#   )
 
-add_dependencies(hsv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(hsv
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBS}
-)
+# add_dependencies(hsv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(hsv
+#   ${catkin_LIBRARIES}
+#   ${OpenCV_LIBS}
+# )
 
 
 add_executable(serial_port 
