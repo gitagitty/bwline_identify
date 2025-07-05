@@ -31,8 +31,8 @@ void sendToSerial(int a, int b) {
     // 构造数据帧，帧头 0x0A，数据为 x, slope，帧尾 0x0D
     uint8_t frame[4];
     frame[0] = 0x0A;  // 帧头
-    frame[1] = static_cast<uint8_t>(a);  // x值
-    frame[2] = static_cast<uint8_t>(b);  // slope值
+    frame[1] = static_cast<uint8_t>(a);  
+    frame[2] = static_cast<uint8_t>(b);  
     frame[3] = 0x0D;  // 帧尾
 
     // 发送数据帧
